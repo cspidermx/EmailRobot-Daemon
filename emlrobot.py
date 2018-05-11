@@ -1,7 +1,3 @@
-from emapp import app, emrdb
-from emapp.models import User
+from emapp import app
 
 
-@app.shell_context_processor
-def make_shell_context():
-    return {'db': emrdb, 'User': User}

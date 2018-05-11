@@ -1,10 +1,7 @@
 import imaplib
-from flask import render_template
-from emapp import app
+from config import emConfig
 import smtplib
 from email.message import EmailMessage
-import threading
-import time
 import re
 from emapp import emrdb
 from emapp.models import Service
@@ -14,6 +11,20 @@ from emapp.storage import storedata
 from bs4 import BeautifulSoup
 from dateutil import parser
 from dateutil.tz import gettz
+
+'''
+s = readstatus()
+    frmss = StartStop()
+    if s.running:
+        livethreads = threading.enumerate()
+        mnthr = None
+        for lvth in livethreads:
+            if lvth.name == "maint":
+                mnthr = lvth
+                break
+            if mnthr is None:
+                maint(1)
+'''
 
 
 def email_address(string):
@@ -27,19 +38,6 @@ def email_address(string):
         return eml
 
 
-class StoppableThread(threading.Thread):
-
-    def __init__(self, *args, **kwargs):
-        super(StoppableThread, self).__init__(*args, **kwargs)
-        self._stop_event = threading.Event()
-
-    def stop(self):
-        self._stop_event.set()
-
-    def stopped(self):
-        return self._stop_event.is_set()
-
-
 def readstatus():
     try:
         s = Service.query.one()
@@ -48,30 +46,6 @@ def readstatus():
         emrdb.session.add(s)
         emrdb.session.commit()
     return s
-
-
-def maint(caller):
-    global ab
-    ab = StoppableThread(target=mainthread, args=(app, caller))
-    ab.setName("maint")
-    ab.daemon = True
-    ab.start()
-
-
-def mainthread(app, caller):
-    with app.app_context():
-        s = readstatus()
-        if s is not None:
-            if s.running:
-                if caller == 1:
-                    mainprocess(1)
-                # for i in range(1, 10):
-                i = 1
-                while not ab.stopped() and i <= 10:
-                    time.sleep(30)
-                    i = i+1
-                if not ab.stopped():
-                    mainprocess(2)
 
 
 def store_email(emailid, conn, folder):
@@ -90,8 +64,8 @@ def store_email(emailid, conn, folder):
     conn.expunge()
 
 
-def mainprocess(clr):
-    imapserver = app.config['IMAP']
+def mainprocess():
+    imapserver = emConfig.IMAP
     con = auth(imapserver)
     r, d = con.select('INBOX')
     if r != 'OK':
@@ -136,12 +110,7 @@ def mainprocess(clr):
             fin(con)
             return True
         print(str(i) + "/" + str(int(d[0]) + 1) + " - " + cliente + " - ")
-        if ab.stopped():
-            fin(con)
-            return True
     fin(con)
-    if clr != 1:
-        maint(2)
 
 
 def get_body(msg):  # extracts the body from the email
@@ -161,7 +130,7 @@ def fin(cnn):  # closes the folder and terminates the connection
     cnn.close()
     cnn.logout()
 
-
+'''
 def send_async_email(app, srv, msge):
     with app.app_context():
         if not srv['SSL']:
@@ -193,3 +162,4 @@ def send_password_reset_email(usr):
     msg.add_alternative(html_msg, subtype="html")
 
     send_email(smtpserver, msg)
+'''
