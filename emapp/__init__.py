@@ -8,8 +8,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from config import emConfig
 
 
-app = __name__
-# app.config.from_object(emConfig)
 engine = create_engine(emConfig.SQLALCHEMY_DATABASE_URI)
 Base = declarative_base()
 Base.metadata.bind = engine
@@ -35,4 +33,4 @@ logger.info('Email Robot iniciado')
 
 from emapp import models, emailfunc
 
-emailfunc.mainprocess()
+

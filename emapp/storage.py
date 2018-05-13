@@ -14,7 +14,7 @@ def storedata(emldta, tokens):
     eml = Email(id=emlid, asunto=emldta[2], fecha=fch, cliente=emldta[4], idmsg=emldta[5])
     emrdbs.add(eml)
     for emladdr in emldta[0]:
-        emlto = EmailTo(id=emlid, to=emladdr)
+        emlto = EmailTo(id=emlid, to_=emladdr)
         emrdbs.add(emlto)
     for emladdr in emldta[1]:
         emlfrom = EmailFrom(id=emlid, frm=emladdr)
@@ -28,7 +28,7 @@ def storedata(emldta, tokens):
     except:
         edt = datetime.strptime('01-01-1901 0:01:00', '%d-%m-%Y %H:%M:%S')
     alert = Alerta(id=emlid, alert_details=tokens[0], start_datetime=sdt, end_datetime=edt, managed_object=tokens[3],
-                   category=tokens[4], rating=tokens[5], status=tokens[6], description=tokens[7],
+                   category_=tokens[4], rating=tokens[5], status=tokens[6], description=tokens[7],
                    analysis_tools=tokens[8])
     emrdbs.add(alert)
     emrdbs.commit()

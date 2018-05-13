@@ -4,27 +4,12 @@ import smtplib
 from email.message import EmailMessage
 import re
 from emapp import emrdb
-from emapp.models import Service
 import email
 from emapp.tokenizer import tknzr, tkformat
 from emapp.storage import storedata
 from bs4 import BeautifulSoup
 from dateutil import parser
 from dateutil.tz import gettz
-
-'''
-s = readstatus()
-    frmss = StartStop()
-    if s.running:
-        livethreads = threading.enumerate()
-        mnthr = None
-        for lvth in livethreads:
-            if lvth.name == "maint":
-                mnthr = lvth
-                break
-            if mnthr is None:
-                maint(1)
-'''
 
 
 def email_address(string):
@@ -38,22 +23,19 @@ def email_address(string):
         return eml
 
 
-def readstatus():
-    try:
-        s = Service.query.one()
-    except:
-        s = Service(running=0)
-        emrdb.session.add(s)
-        emrdb.session.commit()
-    return s
-
-
 def store_email(emailid, conn, folder):
+    # conn.delete('INBOX.TEST')
+    # folder = 'INBOX.' + folder.upper()
     folder = folder.upper()
     try:
         r, d = conn.select(folder)
         if r == 'NO':
-            r, d = conn.create(folder)
+            if str.find(str(d[0]), 'prefixed with') == -1:
+                r, d = conn.create(folder)
+            else:
+                folder = 'INBOX.' + folder.upper()
+                store_email(emailid, conn, folder)
+                return True
         r, d = conn.select('INBOX')
     except AttributeError:
         print(r, " - ", d)
@@ -72,11 +54,8 @@ def mainprocess():
         con.logout()
         return True
     tzinfos = {"CST": gettz("America/Mexico_City")}
-    # for i in range(int(b'1'), int(d[0]) + 1):
-    # for i in range(int(b'1'), int(d[0]) + 1):
     i = 0
     while int(d[0]) >= 1:
-        # idmail = str(i).encode('ascii')
         idmail = str(1).encode('ascii')
         result, data = con.fetch(idmail, '(RFC822)')
         if result == 'OK':
@@ -129,37 +108,3 @@ def auth(conf):  # sets up the auth
 def fin(cnn):  # closes the folder and terminates the connection
     cnn.close()
     cnn.logout()
-
-'''
-def send_async_email(app, srv, msge):
-    with app.app_context():
-        if not srv['SSL']:
-            smtp = smtplib.SMTP(srv['server'], srv['port'])
-            smtp.starttls()
-        else:
-            smtp = smtplib.SMTP_SSL(srv['server'], srv['port'])  # Use this for Nemaris Server
-        smtp.login(srv['user'], srv['password'])
-        smtp.sendmail(msge['From'], msge['To'], msge.as_string())
-        smtp.quit()
-
-
-def send_email(server, msg):
-    threading.Thread(target=send_async_email, args=(app, server, msg)).start()
-
-
-def send_password_reset_email(usr):
-    smtpserver = app.config['SMTP']
-
-    msg = EmailMessage()
-    msg['Subject'] = "Restablecer Password - Robot Email"
-    msg['From'] = smtpserver['user']
-    msg['To'] = usr.email
-    msg.set_type('text/html')
-
-    token = usr.get_reset_password_token()
-    msg.set_content(render_template('email/reset_password.txt', user=usr, token=token))
-    html_msg = render_template('email/reset_password.html', user=usr, token=token)
-    msg.add_alternative(html_msg, subtype="html")
-
-    send_email(smtpserver, msg)
-'''

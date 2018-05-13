@@ -1,3 +1,3 @@
-from emapp import app
+import emapp
 
-
+emapp.emailfunc.mainprocess()
