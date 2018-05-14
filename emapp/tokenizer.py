@@ -1,3 +1,6 @@
+from emapp import logger
+
+
 def __apnd (txt, frst, scnd, epty, start):
     idx = txt.find(frst, start) + len(frst)
     idx2 = 0
@@ -88,8 +91,7 @@ def tknzr (texto):
                 tk.append("Sin Analisis")
 
     except AttributeError:
-        # AAA, ZZZ not found in the original string
         tk.append(("Exception", "Not Found"))
-        # found = 'Not Found'  # apply your error handling
+        logger.warning("No se encontró algún attributo: {}".format(AttributeError))
 
     return tk

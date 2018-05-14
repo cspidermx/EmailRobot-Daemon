@@ -1,12 +1,11 @@
 import imaplib
 from config import emConfig
-import smtplib
-from email.message import EmailMessage
+from datetime import datetime
 import re
-from emapp import emrdb
 import email
 from emapp.tokenizer import tknzr, tkformat
 from emapp.storage import storedata
+from emapp import logger
 from bs4 import BeautifulSoup
 from dateutil import parser
 from dateutil.tz import gettz
@@ -25,34 +24,48 @@ def email_address(string):
 
 def store_email(emailid, conn, folder):
     # conn.delete('INBOX.TEST')
-    # folder = 'INBOX.' + folder.upper()
     folder = folder.upper()
     try:
         r, d = conn.select(folder)
         if r == 'NO':
             if str.find(str(d[0]), 'prefixed with') == -1:
-                r, d = conn.create(folder)
+                conn.create(folder)
             else:
-                folder = 'INBOX.' + folder.upper()
-                store_email(emailid, conn, folder)
-                return True
-        r, d = conn.select('INBOX')
+                if folder.find('INBOX') == -1:
+                    folder = 'INBOX.' + folder.upper()
+                    store_email(emailid, conn, folder)
+                    return True
+                else:
+                    logger.error('No se pudo crear/seleccionar la carpeta: {} en el SMTP'.format(folder))
+        conn.select('INBOX')
     except AttributeError:
-        print(r, " - ", d)
-    conn.store(emailid, '-FLAGS', '\\Seen')
-    conn.store(emailid, '+X-GM-LABELS', folder)
-    conn.store(emailid, '+FLAGS', '\\Deleted')  # Borra el de INBOX
-    # mov, data = conn.uid('STORE', emailid, '+FLAGS', '(\Deleted)')  # Mantiene las 2 copias
-    conn.expunge()
+        logger.error('No se pudo seleccionar/crear la carpeta: {} en el SMTP'.format(folder))
+        logger.error('Error: {}'.format(AttributeError))
+        raise SystemExit(0)
+    try:
+        conn.store(emailid, '-FLAGS', '\\Seen')
+        conn.store(emailid, '+X-GM-LABELS', folder)
+        conn.store(emailid, '+FLAGS', '\\Deleted')  # Borra el de INBOX
+        # mov, data = conn.uid('STORE', emailid, '+FLAGS', '(\Deleted)')  # Mantiene las 2 copias
+        conn.expunge()
+    except:
+        fin(conn)
+        logger.error('No se pudo guardar el correo en la carpeta: {}'.format(folder))
+        raise SystemExit(0)
 
 
 def mainprocess():
     imapserver = emConfig.IMAP
-    con = auth(imapserver)
+    try:
+        con = auth(imapserver)
+    except:
+        logger.error('No se pudo conectar a la cuenta de correo: {}'.format(imapserver))
+        raise SystemExit(0)
     r, d = con.select('INBOX')
     if r != 'OK':
         con.logout()
-        return True
+        logger.error('No se pudo seleccionar INBOX de: {}'.format(imapserver))
+        raise SystemExit(0)
     tzinfos = {"CST": gettz("America/Mexico_City")}
     i = 0
     while int(d[0]) >= 1:
@@ -68,26 +81,34 @@ def mainprocess():
             if frmt == 1:
                 i += 1
                 emldta = (email_address(raw['To']),
-                            email_address(raw['From']),
-                            raw['Subject'].replace('***SPAM***', '').strip(),
-                            parser.parse(raw['Date'].replace("CST_NA", "CST"), tzinfos=tzinfos).strftime('%d-%m-%Y %H:%M:%S'),
-                            cliente,
-                            raw['Message-ID'])
+                          email_address(raw['From']),
+                          raw['Subject'].replace('***SPAM***', '').strip(),
+                          parser.parse(raw['Date'].replace("CST_NA", "CST"), tzinfos=tzinfos).strftime(
+                              '%d-%m-%Y %H:%M:%S'),
+                          cliente,
+                          raw['Message-ID'])
                 tokens = tknzr(soup.get_text())
                 try:
-                    tokens[1] = parser.parse(tokens[1].replace("CST_NA", "CST"), tzinfos=tzinfos).strftime('%d-%m-%Y %H:%M:%S')
+                    tokens[1] = parser.parse(tokens[1].replace("CST_NA", "CST"), tzinfos=tzinfos).strftime(
+                        '%d-%m-%Y %H:%M:%S')
                 except:
-                    None
+                    logger.warning(
+                        'No se pudo hacer el parse de: {} | Message-ID: {}'.format(tokens[1], raw['Message-ID']))
+                    tokens[1] = datetime.strptime('01-01-1901 0:01:00', '%d-%m-%Y %H:%M:%S')
                 try:
-                    tokens[2] = parser.parse(tokens[2].replace("CST_NA", "CST"), tzinfos=tzinfos).strftime('%d-%m-%Y %H:%M:%S')
+                    tokens[2] = parser.parse(tokens[2].replace("CST_NA", "CST"), tzinfos=tzinfos).strftime(
+                        '%d-%m-%Y %H:%M:%S')
                 except:
-                    None
+                    logger.warning(
+                        'No se pudo hacer el parse de: {} | Message-ID: {}'.format(tokens[2], raw['Message-ID']))
+                    tokens[2] = datetime.strptime('01-01-1901 0:01:00', '%d-%m-%Y %H:%M:%S')
                 storedata(emldta, tokens)
             store_email(idmail, con, cliente)
             r, d = con.select('INBOX')
         else:
             fin(con)
-            return True
+            logger.error('No se pudo leer el primer correo de INBOX')
+            raise SystemExit(0)
         print(str(i) + "/" + str(int(d[0]) + 1) + " - " + cliente + " - ")
     fin(con)
 
