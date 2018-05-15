@@ -24,6 +24,7 @@ def email_address(string):
 
 def store_email(emailid, conn, folder):
     # conn.delete('INBOX.TEST')
+
     folder = folder.upper()
     try:
         r, d = conn.select(folder)
@@ -43,11 +44,19 @@ def store_email(emailid, conn, folder):
         logger.error('Error: {}'.format(AttributeError))
         raise SystemExit(0)
     try:
-        conn.store(emailid, '-FLAGS', '\\Seen')
+        '''conn.store(emailid, '-FLAGS', '\\Seen')
         conn.store(emailid, '+X-GM-LABELS', folder)
-        conn.store(emailid, '+FLAGS', '\\Deleted')  # Borra el de INBOX
+        conn.store(emailid, '+FLAGS', '\\Deleted')  # Borra el de INBOX'''
         # mov, data = conn.uid('STORE', emailid, '+FLAGS', '(\Deleted)')  # Mantiene las 2 copias
-        conn.expunge()
+        resp, data = conn.fetch(emailid, "(UID)")
+        msg_uid = str(data[0])[str(data[0]).find('UID') + 4: str(data[0]).find(')')]
+        result = conn.uid('COPY', msg_uid, '<destination folder>')
+        if result[0] == 'OK':
+            conn.uid('STORE', msg_uid, '+FLAGS', '(\Deleted)')
+            conn.expunge()
+        else:
+            logger.error('No se pudo guardar el correo en la carpeta: {}'.format(folder))
+            raise SystemExit(0)
     except:
         fin(conn)
         logger.error('No se pudo guardar el correo en la carpeta: {}'.format(folder))
