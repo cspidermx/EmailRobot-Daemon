@@ -5,17 +5,17 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from config import emConfig
+from config import EmConfig
 
 
 logger = logging.getLogger('EmailRobot')
-if emConfig.SMTP['user'] != 'Usuario-de-SMTP':
-    auth = (emConfig.SMTP['user'], emConfig.SMTP['password'])
+if EmConfig.SMTP['user'] != 'Usuario-de-SMTP':
+    auth = (EmConfig.SMTP['user'], EmConfig.SMTP['password'])
     mail_handler = SMTPHandler(
-                mailhost=(emConfig.SMTP['server'], emConfig.SMTP['port']),
-                fromaddr='no-reply@' + emConfig.SMTP['server'],
+                mailhost=(EmConfig.SMTP['server'], EmConfig.SMTP['port']),
+                fromaddr='no-reply@' + EmConfig.SMTP['server'],
                 toaddrs='carlos.barajas@nemaris.com.mx', subject='Falla en robot de Email',
-                credentials=auth, secure=emConfig.SMTP['SSL'])
+                credentials=auth, secure=EmConfig.SMTP['SSL'])
     mail_handler.setLevel(logging.ERROR)
     logger.addHandler(mail_handler)
 if not os.path.exists('logs'):
@@ -28,13 +28,13 @@ logger.setLevel(logging.INFO)
 logger.info('Email Robot iniciado')
 
 try:
-    engine = create_engine(emConfig.SQLALCHEMY_DATABASE_URI)
+    engine = create_engine(EmConfig.SQLALCHEMY_DATABASE_URI)
     Base = declarative_base()
     Base.metadata.bind = engine
     emrdb = sessionmaker(bind=engine)
     emrdbs = emrdb()
 except:
-    logger.error('No se pudo inicializar la Base de Datos: {}'.format(emConfig.SQLALCHEMY_DATABASE_URI))
+    logger.error('No se pudo inicializar la Base de Datos: {}'.format(EmConfig.SQLALCHEMY_DATABASE_URI))
     raise SystemExit(0)
 
 

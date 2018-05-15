@@ -97,5 +97,4 @@ ENV/
 
 # mypy
 .mypy_cache/
-config.py
-.idea/workspace.xml
+vars.py

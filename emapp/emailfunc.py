@@ -1,5 +1,5 @@
 import imaplib
-from config import emConfig
+from config import EmConfig
 from datetime import datetime
 import re
 import email
@@ -55,7 +55,7 @@ def store_email(emailid, conn, folder):
 
 
 def mainprocess():
-    imapserver = emConfig.IMAP
+    imapserver = EmConfig.IMAP
     try:
         con = auth(imapserver)
     except:
@@ -111,6 +111,7 @@ def mainprocess():
             raise SystemExit(0)
         print(str(i) + "/" + str(int(d[0]) + 1) + " - " + cliente + " - ")
     fin(con)
+    logger.info('Email Robot finalizo {} correos procesados'.format(i))
 
 
 def get_body(msg):  # extracts the body from the email
