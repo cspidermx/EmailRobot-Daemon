@@ -24,33 +24,40 @@ def email_address(string):
 
 def store_email(emailid, conn, folder):
     # conn.delete('INBOX.TEST')
-
-    folder = folder.upper()
+    topfolder = 'INBOX.CLIENTES'
+    folder = 'INBOX.CLIENTES.' + folder.upper()
     try:
+        r, d = conn.select(topfolder)
+        if r == 'NO':
+            r, d = conn.create(topfolder)
+            if r != "OK":
+                logger.error('No fue posible crear el folder CLIENTES')
+                raise SystemExit(0)
+            else:
+                conn.subscribe(topfolder)
         r, d = conn.select(folder)
         if r == 'NO':
-            if str.find(str(d[0]), 'prefixed with') == -1:
-                conn.create(folder)
+            r, d = conn.create(folder)
+            if r != "OK":
+                logger.error('No fue posible crear el folder {}'.format(folder))
+                raise SystemExit(0)
             else:
-                if folder.find('INBOX') == -1:
-                    folder = 'INBOX.' + folder.upper()
-                    store_email(emailid, conn, folder)
-                    return True
-                else:
-                    logger.error('No se pudo crear/seleccionar la carpeta: {} en el SMTP'.format(folder))
+                conn.subscribe(folder)
         conn.select('INBOX')
     except AttributeError:
         logger.error('No se pudo seleccionar/crear la carpeta: {} en el SMTP'.format(folder))
         logger.error('Error: {}'.format(AttributeError))
         raise SystemExit(0)
     try:
-        '''conn.store(emailid, '-FLAGS', '\\Seen')
+        '''
+        conn.store(emailid, '-FLAGS', '\\Seen')
         conn.store(emailid, '+X-GM-LABELS', folder)
-        conn.store(emailid, '+FLAGS', '\\Deleted')  # Borra el de INBOX'''
+        conn.store(emailid, '+FLAGS', '\\Deleted')  # Borra el de INBOX
+        '''
         # mov, data = conn.uid('STORE', emailid, '+FLAGS', '(\Deleted)')  # Mantiene las 2 copias
         resp, data = conn.fetch(emailid, "(UID)")
         msg_uid = str(data[0])[str(data[0]).find('UID') + 4: str(data[0]).find(')')]
-        result = conn.uid('COPY', msg_uid, '<destination folder>')
+        result = conn.uid('COPY', msg_uid, folder)
         if result[0] == 'OK':
             conn.uid('STORE', msg_uid, '+FLAGS', '(\Deleted)')
             conn.expunge()

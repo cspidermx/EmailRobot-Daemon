@@ -62,7 +62,7 @@ def tknzr (texto):
         resp, idx2 = __apnd(texto, "End Date Time", "Managed Object", "Sin fecha/hora de finalización", idx2)
         tk.append(resp)
         resp, idx2 = __apnd(texto, "Managed Object", "System Login", "Sin Objeto Manejado", idx2)
-        tk.append(resp)
+        tk.append(resp.replace('( Technical Instance )', '').strip().replace('( Technical System )', '').strip())
         resp, idx2 = __apnd(texto, "Category", "Rating", "Sin Categoría", idx2)
         tk.append(resp)
         resp, idx2 = __apnd(texto, "Rating", "Status", "Sin Valuación", idx2)
