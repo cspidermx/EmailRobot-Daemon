@@ -4,7 +4,7 @@ from datetime import datetime
 import re
 import email
 from emapp.tokenizer import tknzr, tkformat
-from emapp.storage import storedata
+from emapp.storage import storedata, igualar_tablas
 from emapp import logger
 from bs4 import BeautifulSoup
 from dateutil import parser
@@ -22,7 +22,7 @@ def email_address(string):
         return eml
 
 
-def store_email(emailid, conn, folder):
+def store_email(emailid, conn, folder, is_un):
     # conn.delete('INBOX.TEST')
     topfolder = 'INBOX.CLIENTES'
     folder = 'INBOX.CLIENTES.' + folder.upper()
@@ -57,6 +57,8 @@ def store_email(emailid, conn, folder):
         # mov, data = conn.uid('STORE', emailid, '+FLAGS', '(\Deleted)')  # Mantiene las 2 copias
         resp, data = conn.fetch(emailid, "(UID)")
         msg_uid = str(data[0])[str(data[0]).find('UID') + 4: str(data[0]).find(')')]
+        if is_un:
+            conn.uid('STORE', msg_uid, '-FLAGS', '(\Seen)')
         result = conn.uid('COPY', msg_uid, folder)
         if result[0] == 'OK':
             conn.uid('STORE', msg_uid, '+FLAGS', '(\Deleted)')
@@ -71,6 +73,10 @@ def store_email(emailid, conn, folder):
 
 
 def mainprocess():
+    while True:
+        tablaslistas = igualar_tablas()
+        if tablaslistas == 'OK':
+            break
     imapserver = EmConfig.IMAP
     try:
         con = auth(imapserver)
@@ -86,6 +92,11 @@ def mainprocess():
     i = 0
     while int(d[0]) >= 1:
         idmail = str(1).encode('ascii')
+        unread = con.search(None, '(UNSEEN)')
+        if unread[0] == 'OK':
+            is_unread = idmail in unread[1][0]
+        else:
+            is_unread = False
         result, data = con.fetch(idmail, '(RFC822)')
         if result == 'OK':
             raw = email.message_from_bytes(data[0][1])
@@ -119,13 +130,13 @@ def mainprocess():
                         'No se pudo hacer el parse de: {} | Message-ID: {}'.format(tokens[2], raw['Message-ID']))
                     tokens[2] = datetime.strptime('01-01-1901 0:01:00', '%d-%m-%Y %H:%M:%S')
                 storedata(emldta, tokens)
-            store_email(idmail, con, cliente)
+            store_email(idmail, con, cliente, is_unread)
             r, d = con.select('INBOX')
         else:
             fin(con)
             logger.error('No se pudo leer el primer correo de INBOX')
             raise SystemExit(0)
-        print(str(i) + "/" + str(int(d[0]) + 1) + " - " + cliente + " - ")
+        # print(str(i) + "/" + str(int(d[0]) + 1) + " - " + cliente + " - ")
     fin(con)
     logger.info('Email Robot finalizo {} correos procesados'.format(i))
 

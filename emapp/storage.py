@@ -4,6 +4,44 @@ from datetime import datetime
 from sqlalchemy.sql.expression import func
 
 
+def igualar_tablas():
+    qryemlid = emrdbs.query(func.max(Email.id)).one()
+    if qryemlid[0] is not None:
+        emlid = qryemlid[0]
+    else:
+        emlid = 0
+    qryemltoid = emrdbs.query(func.max(EmailTo.id)).one()
+    if qryemltoid[0] is not None:
+        emltoid = qryemltoid[0]
+    else:
+        emltoid = 0
+    qryemlfrid = emrdbs.query(func.max(EmailFrom.id)).one()
+    if qryemlfrid[0] is not None:
+        emlfrid = qryemlfrid[0]
+    else:
+        emlfrid = 0
+    qryalertid = emrdbs.query(func.max(Alerta.id)).one()
+    if qryalertid[0] is not None:
+        alertid = qryalertid[0]
+    else:
+        alertid = 0
+    if not (emlid == emltoid == emlfrid == alertid):
+        l_id = [emlid, emltoid, emlfrid, alertid]
+        last = min(l_id)
+        if emlid > last:
+            emrdbs.query(Email).filter_by(id=emlid).delete()
+        if emltoid > last:
+            emrdbs.query(EmailTo).filter_by(id=emltoid).delete()
+        if emlfrid > last:
+            emrdbs.query(EmailFrom).filter_by(id=emlfrid).delete()
+        if alertid > last:
+            emrdbs.query(Alerta).filter_by(id=alertid).delete()
+        emrdbs.commit()
+        return 'DEL'
+    else:
+        return 'OK'
+
+
 def storedata(emldta, tokens):
     qryemlid = emrdbs.query(func.max(Email.id)).one()
     if qryemlid[0] is not None:
