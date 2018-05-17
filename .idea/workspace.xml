@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f766a4b7-c2b2-4217-a475-d82c6a0d278f" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/EmailRobot Daemon.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/EmailRobot Daemon.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emapp/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/emapp/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emapp/emailfunc.py" beforeDir="false" afterPath="$PROJECT_DIR$/emapp/emailfunc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emapp/storage.py" beforeDir="false" afterPath="$PROJECT_DIR$/emapp/storage.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emlrobot.py" beforeDir="false" afterPath="$PROJECT_DIR$/emlrobot.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -139,7 +133,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -147,15 +140,11 @@
               <item name="EmailRobot Daemon" type="b2602c69:ProjectViewProjectNode" />
               <item name="EmailRobot Daemon" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="EmailRobot Daemon" type="b2602c69:ProjectViewProjectNode" />
-              <item name="EmailRobot Daemon" type="462c0819:PsiDirectoryNode" />
-              <item name="logs" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -211,21 +200,21 @@
     <layout-to-restore>
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24973656" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="10" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Python Console" order="7" weight="0.30610022" />
-      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32897604" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Terminal" order="8" visible="true" weight="0.3148148" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32897604" />
+      <window_info anchor="bottom" id="Version Control" order="10" />
       <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Python Console" order="7" weight="0.30610022" />
     </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
