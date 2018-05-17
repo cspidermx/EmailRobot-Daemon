@@ -45,16 +45,16 @@ def store_email(emailid, conn, folder, is_un):
                 conn.subscribe(folder)
         conn.select('INBOX')
     except AttributeError:
-        logger.error('No se pudo seleccionar/crear la carpeta: {} en el SMTP'.format(folder))
+        logger.warning('No se pudo seleccionar/crear la carpeta: {} en el SMTP'.format(folder))
         logger.error('Error: {}'.format(AttributeError))
         raise SystemExit(0)
     try:
-        '''
+        ''' gmail
         conn.store(emailid, '-FLAGS', '\\Seen')
         conn.store(emailid, '+X-GM-LABELS', folder)
         conn.store(emailid, '+FLAGS', '\\Deleted')  # Borra el de INBOX
-        '''
         # mov, data = conn.uid('STORE', emailid, '+FLAGS', '(\Deleted)')  # Mantiene las 2 copias
+        '''
         resp, data = conn.fetch(emailid, "(UID)")
         msg_uid = str(data[0])[str(data[0]).find('UID') + 4: str(data[0]).find(')')]
         if is_un:
@@ -72,7 +72,7 @@ def store_email(emailid, conn, folder, is_un):
         raise SystemExit(0)
 
 
-def mainprocess():
+def mainprocess(explicit):
     while True:
         tablaslistas = igualar_tablas()
         if tablaslistas == 'OK':
@@ -81,12 +81,12 @@ def mainprocess():
     try:
         con = auth(imapserver)
     except:
-        logger.error('No se pudo conectar a la cuenta de correo: {}'.format(imapserver))
+        logger.error('No se pudo conectar a la cuenta de correo: {}'.format(imapserver['user']))
         raise SystemExit(0)
     r, d = con.select('INBOX')
     if r != 'OK':
         con.logout()
-        logger.error('No se pudo seleccionar INBOX de: {}'.format(imapserver))
+        logger.error('No se pudo seleccionar INBOX de: {}'.format(imapserver['user']))
         raise SystemExit(0)
     tzinfos = {"CST": gettz("America/Mexico_City")}
     i = 0
@@ -134,11 +134,12 @@ def mainprocess():
             r, d = con.select('INBOX')
         else:
             fin(con)
-            logger.error('No se pudo leer el primer correo de INBOX')
+            logger.error('No se pudo leer el primer correo de INBOX de {}'.format(imapserver['user']))
             raise SystemExit(0)
-        # print(str(i) + "/" + str(int(d[0]) + 1) + " - " + cliente + " - ")
+        if explicit:
+            print(str(i) + "/" + str(int(d[0]) + 1) + " - " + cliente + " - ")
     fin(con)
-    logger.info('Email Robot finalizo {} correos procesados'.format(i))
+    logger.info('Email Robot finalizó: {} correos procesados'.format(i))
 
 
 def get_body(msg):  # extracts the body from the email

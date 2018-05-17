@@ -54,21 +54,24 @@ def storedata(emldta, tokens):
         eml = Email(id=emlid, asunto=emldta[2], fecha=fch, cliente=emldta[4], idmsg=emldta[5])
         emrdbs.add(eml)
     else:
-        logger.warning('Email ya se encuentra en la base de datos')
+        logger.warning('Email repetido en la base de datos: Email de {} el {}'.format(emldta[4], fch.strftime(
+            '%d-%m-%Y %H:%M:%S')))
     for emladdr in emldta[0]:
         twin = emrdbs.query(EmailTo.id).filter_by(id=emlid, to_=emladdr)
         if twin.count() == 0:
             emlto = EmailTo(id=emlid, to_=emladdr)
             emrdbs.add(emlto)
         else:
-            logger.warning('Email-To repetido en la base de datos')
+            logger.warning('Email-To repetido en la base de datos: Email de {} el {}'.format(emldta[4], fch.strftime(
+                '%d-%m-%Y %H:%M:%S')))
     for emladdr in emldta[1]:
         twin = emrdbs.query(EmailFrom.id).filter_by(id=emlid, frm=emladdr)
         if twin.count() == 0:
             emlfrom = EmailFrom(id=emlid, frm=emladdr)
             emrdbs.add(emlfrom)
         else:
-            logger.warning('Email-From repetido en la base de datos')
+            logger.warning('Email-From repetido en la base de datos: Email de {} el {}'.format(emldta[4], fch.strftime(
+                '%d-%m-%Y %H:%M:%S')))
     try:
         sdt = datetime.strptime(tokens[1], '%d-%m-%Y %H:%M:%S')
     except:
@@ -80,12 +83,20 @@ def storedata(emldta, tokens):
     twin = emrdbs.query(Alerta.id).filter_by(alert_details=tokens[0], start_datetime=sdt, end_datetime=edt,
                                              managed_object=tokens[3], category_=tokens[4], rating=tokens[5],
                                              status=tokens[6], description=tokens[7], analysis_tools=tokens[8])
-    if twin.count() == 0:
+    alerta_doble = False
+    if twin.count() != 0:
+        twin = emrdbs.query(Email.cliente).filter_by(id=twin.one()[0])
+        if twin.count() != 0:
+            cte = twin.one()[0]
+            if emldta[4] == cte:
+                alerta_doble = True
+    if not alerta_doble:
         alert = Alerta(id=emlid, alert_details=tokens[0], start_datetime=sdt, end_datetime=edt, managed_object=tokens[3],
                        category_=tokens[4], rating=tokens[5], status=tokens[6], description=tokens[7],
                        analysis_tools=tokens[8])
         emrdbs.add(alert)
     else:
-        logger.warning('Alerta ya se encuentra en la base de datos')
+        logger.warning('Alerta ya se encuentra en la base de datos: Email de {} el {}'.format(emldta[4], fch.strftime(
+            '%d-%m-%Y %H:%M:%S')))
     emrdbs.commit()
 
