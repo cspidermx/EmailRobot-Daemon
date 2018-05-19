@@ -73,13 +73,19 @@ def store_email(emailid, conn, folder, is_un):
 
 
 def mainprocess(explicit):
+    if explicit:
+        print('Iniciando Proceso principal')
     while True:
         tablaslistas = igualar_tablas()
         if tablaslistas == 'OK':
+            if explicit:
+                print('Tablas listas')
             break
     imapserver = EmConfig.IMAP
     try:
         con = auth(imapserver)
+        if explicit:
+            print('Conectado a server de mail')
     except:
         logger.error('No se pudo conectar a la cuenta de correo: {}'.format(imapserver['user']))
         raise SystemExit(0)
@@ -88,6 +94,9 @@ def mainprocess(explicit):
         con.logout()
         logger.error('No se pudo seleccionar INBOX de: {}'.format(imapserver['user']))
         raise SystemExit(0)
+    else:
+        if explicit:
+            print('INBOX seleccionado')
     tzinfos = {"CST": gettz("America/Mexico_City")}
     i = 0
     while int(d[0]) >= 1:
