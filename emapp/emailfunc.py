@@ -125,15 +125,13 @@ def mainprocess(explicit):
                           raw['Message-ID'])
                 tokens = tknzr(soup.get_text())
                 try:
-                    tokens[1] = parser.parse(tokens[1].replace("CST_NA", "CST"), tzinfos=tzinfos).strftime(
-                        '%d-%m-%Y %H:%M:%S')
+                    tokens[1] = datetime.strptime(tokens[1].replace(" CST_NA", "").replace(" CST", ""),'%d.%m.%Y %H:%M:%S').strftime('%d-%m-%Y %H:%M:%S')
                 except:
                     logger.warning(
                         'No se pudo hacer el parse de: {} | Message-ID: {}'.format(tokens[1], raw['Message-ID']))
                     tokens[1] = datetime.strptime('01-01-1901 0:01:00', '%d-%m-%Y %H:%M:%S')
                 try:
-                    tokens[2] = parser.parse(tokens[2].replace("CST_NA", "CST"), tzinfos=tzinfos).strftime(
-                        '%d-%m-%Y %H:%M:%S')
+                    tokens[2] = datetime.strptime(tokens[2].replace(" CST_NA", "").replace(" CST", ""),'%d.%m.%Y %H:%M:%S').strftime('%d-%m-%Y %H:%M:%S')
                 except:
                     logger.warning(
                         'No se pudo hacer el parse de: {} | Message-ID: {}'.format(tokens[2], raw['Message-ID']))
