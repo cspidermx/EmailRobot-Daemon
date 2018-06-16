@@ -4,6 +4,18 @@ from datetime import datetime
 from sqlalchemy.sql.expression import func
 
 
+def lista_clientes():
+    cliuniq = {'cliente1': 'SAP'}
+    qryclis = emrdbs.query(Email.cliente).distinct().all()
+    if len(qryclis) > 0:
+        i = 1
+        for cli in qryclis:
+            for r in cli:
+                i += 1
+                cliuniq['cliente' + str(i)] = r.upper()
+    return cliuniq
+
+
 def igualar_tablas():
     qryemlid = emrdbs.query(func.max(Email.id)).one()
     if qryemlid[0] is not None:

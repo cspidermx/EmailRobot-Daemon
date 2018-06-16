@@ -4,7 +4,7 @@ from datetime import datetime
 import re
 import email
 from emapp.tokenizer import tknzr, tkformat
-from emapp.storage import storedata, igualar_tablas
+from emapp.storage import storedata, igualar_tablas, lista_clientes
 from emapp import logger
 from bs4 import BeautifulSoup
 from dateutil import parser
@@ -72,6 +72,67 @@ def store_email(emailid, conn, folder, is_un):
         raise SystemExit(0)
 
 
+def del_oldmail(conn, explicit):
+    clis = lista_clientes()
+    topfolder = 'INBOX.CLIENTES'
+    tzinfos = {"CST": gettz("America/Mexico_City")}
+    try:
+        r, d = conn.select(topfolder)
+        if r == 'NO':
+            return True
+    except AttributeError:
+        logger.warning('Error al seleccionar la carpeta: {} en el SMTP'.format(topfolder))
+        logger.error('Error: {}'.format(AttributeError))
+        raise SystemExit(0)
+    for cs in clis:
+        folder = 'INBOX.CLIENTES.' + clis[cs]
+        if explicit:
+            print('Revisando mails viejos de: ', folder)
+        try:
+            r, d = conn.select(folder)
+            if r == 'OK':
+                cont = True
+            else:
+                cont = False
+        except AttributeError:
+            logger.warning('Error al seleccionar la carpeta: {} en el SMTP'.format(folder))
+            logger.error('Error: {}'.format(AttributeError))
+            raise SystemExit(0)
+        while cont:
+            if int(d[0]) >= 1:
+                idmail = str(1).encode('ascii')
+                result, data = conn.fetch(idmail, '(RFC822)')
+                if result == 'OK':
+                    raw = email.message_from_bytes(data[0][1])
+                    fecha = parser.parse(raw['Date'].replace("CST_NA", "CST"), tzinfos=tzinfos).strftime(
+                        '%d-%m-%Y %H:%M:%S')
+                    fechamail = datetime.strptime(fecha, '%d-%m-%Y %H:%M:%S')
+                    now = datetime.now()
+                    lapso = (now - fechamail)
+                    dias = lapso.days + (lapso.seconds / 86400) + (lapso.microseconds / 86400000000.00056)
+                    if explicit:
+                        print('\tBorrando mail No. ', d[0], ' / Razon, edad: ', dias, 'dias')
+                    if dias > 7:
+                        try:
+                            resp, dt = conn.fetch(idmail, "(UID)")
+                            msg_uid = str(dt[0])[str(dt[0]).find('UID') + 4: str(dt[0]).find(')')]
+                            conn.uid('STORE', msg_uid, '+FLAGS', '(\Deleted)')
+                            conn.expunge()
+                        except AttributeError:
+                            logger.warning('No se pudo eliminar el correo de la carpeta: {} en el SMTP'.format(folder))
+                            logger.error('Error: {}'.format(AttributeError))
+                            raise SystemExit(0)
+                    else:
+                        cont = False
+                    r, d = conn.select(folder)
+                else:
+                    fin(conn)
+                    logger.error('No se pudo leer el ultimo correo de {}'.format(folder))
+                    raise SystemExit(0)
+            else:
+                cont = False
+
+
 def mainprocess(explicit):
     if explicit:
         print('Iniciando Proceso principal')
@@ -89,6 +150,7 @@ def mainprocess(explicit):
     except:
         logger.error('No se pudo conectar a la cuenta de correo: {}'.format(imapserver['user']))
         raise SystemExit(0)
+    del_oldmail(con, explicit)
     r, d = con.select('INBOX')
     if r != 'OK':
         con.logout()
