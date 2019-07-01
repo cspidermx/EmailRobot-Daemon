@@ -24,8 +24,8 @@ def email_address(string):
 
 def store_email(emailid, conn, folder, is_un):
     # conn.delete('INBOX.TEST')
-    topfolder = 'INBOX.CLIENTES'
-    folder = 'INBOX.CLIENTES.' + folder.upper()
+    topfolder = 'INBOX/CLIENTES'
+    folder = 'INBOX/CLIENTES/' + folder.upper()
     try:
         r, d = conn.select(topfolder)
         if r == 'NO':
@@ -74,7 +74,7 @@ def store_email(emailid, conn, folder, is_un):
 
 def del_oldmail(conn, explicit):
     clis = lista_clientes()
-    topfolder = 'INBOX.CLIENTES'
+    topfolder = 'INBOX/CLIENTES'
     tzinfos = {"CST": gettz("America/Mexico_City")}
     try:
         r, d = conn.select(topfolder)
@@ -85,7 +85,7 @@ def del_oldmail(conn, explicit):
         logger.error('Error: {}'.format(AttributeError))
         raise SystemExit(0)
     for cs in clis:
-        folder = 'INBOX.CLIENTES.' + clis[cs]
+        folder = 'INBOX/CLIENTES/' + clis[cs]
         if explicit:
             print('Revisando mails viejos de: ', folder)
         try:
