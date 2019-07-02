@@ -2,6 +2,7 @@ from emapp.models import Email, EmailFrom, EmailTo, Alerta
 from emapp import emrdbs, logger
 from datetime import datetime
 from sqlalchemy.sql.expression import func
+from sqlalchemy.exc import DatabaseError
 
 
 def lista_clientes():
@@ -17,7 +18,12 @@ def lista_clientes():
 
 
 def igualar_tablas():
-    qryemlid = emrdbs.query(func.max(Email.id)).one()
+    try:
+        qryemlid = emrdbs.query(func.max(Email.id)).one()
+    except DatabaseError as dberr:
+        logger.warning('Error de la base de datos: {}'.format(dberr.code))
+        logger.error('Error: {}'.format(dberr.orig.args[0].message))
+        raise SystemExit(0)
     if qryemlid[0] is not None:
         emlid = qryemlid[0]
     else:
