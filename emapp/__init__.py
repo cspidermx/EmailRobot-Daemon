@@ -30,7 +30,8 @@ logger.setLevel(logging.INFO)
 logger.info('Email Robot iniciado')
 
 try:
-    engine = create_engine(EmConfig.SQLALCHEMY_DATABASE_URI)
+    engine = create_engine(EmConfig.SQLALCHEMY_DATABASE_URI,
+                           max_identifier_length=128)
     Base = declarative_base()
     Base.metadata.bind = engine
     emrdb = sessionmaker(bind=engine)
